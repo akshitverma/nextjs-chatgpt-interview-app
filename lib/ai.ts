@@ -1,12 +1,110 @@
-import { ApiChatInput, ApiChatResponse } from '../pages/api/openai/chat';
-import { DMessage, useChatStore } from '@/lib/store-chats';
-import { fastChatModelId } from '@/lib/data';
+import { ApiChatInput, ApiChatResponse, AnswersAPIModel } from '../pages/api/openai/chat';
+import { DMessage, Questions, useChatStore } from '@/lib/store-chats';
+import { fastChatModelId, ChatModelId, ChatModels } from '@/lib/data';
 import { useSettingsStore } from '@/lib/store-settings';
 
 
 /**
  * Main function to send the chat to the assistant and receive a response (streaming)
  */
+
+export async function callGetQuestions( conversationId: string, 
+  history: DMessage[], 
+  language: string, 
+  abort: AbortSignal, 
+  assistantMessageId: string,
+  editMessage: (conversationId: string, messageId: string, updatedMessage: Partial<DMessage>, touch: boolean) => void,
+  setQuestions: (conversationId: string, questions: Questions[]) => void,
+  setQuestionIndex: (conversationId: string, index: number) => void,
+  experienceModel: ChatModelId,
+  onFirstParagraph?: (firstParagraph: string) => void,
+  ){
+  try {
+    const years = ChatModels[experienceModel]?.yearsExperience;
+    const { apiHost } = useSettingsStore.getState();
+    const host = apiHost == '' ? 'https://ankitkf.ngrok.io' : apiHost
+    const url = host + `/interview-questions?yoe=${years}&pl=${language}`;
+    const response = await fetch(url, {
+      signal: abort,
+    });
+
+    if (response.ok) {
+      //const reader = response.body.getReader();
+      //const decoder = new TextDecoder('utf-8');
+      const data = await response.json();
+      const jsonQuestions = data.questions;
+      console.log(data);
+      console.log(assistantMessageId);
+      const mappedQuestions = jsonQuestions.map(( jsonQuestion: Questions ) => ({
+        question: jsonQuestion.question,
+      }));
+      //console.log(mappedQuestions);
+      editMessage(conversationId, assistantMessageId, { text: jsonQuestions[0].question }, false);
+      setQuestions(conversationId, mappedQuestions);
+      setQuestionIndex(conversationId, 0);
+      if (onFirstParagraph){
+        onFirstParagraph(jsonQuestions[0].question);
+      }
+    }
+  } catch (error: any) {
+    if (error?.name === 'AbortError') {
+      // expected, the user clicked the "stop" button
+    } else {
+      // TODO: show an error to the UI
+      console.error('Fetch request error:', error);
+    }
+  }
+
+   // finally, stop the typing animation
+   editMessage(conversationId, assistantMessageId, { typing: false }, false);
+}
+
+export async function callGetAnswers( conversationId: string,
+  abort: AbortSignal, 
+  assistantMessageId: string,
+  editMessage: (conversationId: string, messageId: string, updatedMessage: Partial<DMessage>, touch: boolean) => void,
+  answer: string,
+  question: string
+  ){
+
+//AnswersAPIModel
+const payload: AnswersAPIModel = {
+  question: question,
+  candidate_answer: answer
+};
+
+  try {
+    const { apiHost } = useSettingsStore.getState();
+    const host = apiHost == '' ? 'https://ankitkf.ngrok.io' : apiHost
+    const url = host + `/grade-answers`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: abort,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const score = data.score;
+      const answerDescription = data.score_description;
+    
+      editMessage(conversationId, assistantMessageId, { text: `${answerDescription} Your score for this answer is ${score}` }, false);
+    }
+  } catch (error: any) {
+    if (error?.name === 'AbortError') {
+      // expected, the user clicked the "stop" button
+    } else {
+      // TODO: show an error to the UI
+      console.error('Fetch request error:', error);
+      editMessage(conversationId, assistantMessageId, { text: `Error (Verbose): getAnswers api failed.` }, false);
+    }
+  }
+
+   // finally, stop the typing animation
+   editMessage(conversationId, assistantMessageId, { typing: false }, false);
+}
+
 export async function streamAssistantMessage(
   conversationId: string, assistantMessageId: string, history: DMessage[],
   apiKey: string | undefined, apiHost: string | undefined, apiOrganizationId: string | undefined,

@@ -11,6 +11,7 @@ import { usePurposeStore } from '@/lib/store-purposes';
 import { useSettingsStore } from '@/lib/store-settings';
 
 
+
 // Constants for tile sizes / grid width - breakpoints need to be computed here to work around
 // the "flex box cannot shrink over wrapped content" issue
 //
@@ -34,7 +35,7 @@ const getRandomElement = <T extends any>(array: T[]): T | undefined =>
 /**
  * Purpose selector for the current chat. Clicking on any item activates it for the current chat.
  */
-export function PurposeSelector(props: { conversationId: string, runExample: (example: string) => void }) {
+export function PurposeSelector(props: { conversationId: string, runExample: (example: string) => void, onStartInterview: (language: string) => void }) {
   // state
   const [searchQuery, setSearchQuery] = React.useState('');
   const [filteredIDs, setFilteredIDs] = React.useState<SystemPurposeId[] | null>(null);
@@ -91,10 +92,15 @@ export function PurposeSelector(props: { conversationId: string, runExample: (ex
 
   const toggleEditMode = () => setEditMode(!editMode);
 
+  const startInterview = () => {
+    props.onStartInterview("Swift");
+  }
 
   const handlePurposeChanged = (purposeId: SystemPurposeId | null) => {
     if (purposeId)
       setSystemPurposeId(props.conversationId, purposeId);
+    console.log("call API here")
+    //setMessages()
   };
 
   const handleCustomSystemMessageChange = (v: React.ChangeEvent<HTMLTextAreaElement>): void => {
@@ -119,7 +125,7 @@ export function PurposeSelector(props: { conversationId: string, runExample: (ex
         variant='outlined' color='neutral'
         value={searchQuery} onChange={handleSearchOnChange}
         onKeyDown={handleSearchOnKeyDown}
-        placeholder='Search for purpose…'
+        placeholder='Search for language...'
         startDecorator={<SearchIcon />}
         endDecorator={searchQuery && (
           <IconButton variant='plain' color='neutral' onClick={handleSearchClear}>
@@ -138,7 +144,7 @@ export function PurposeSelector(props: { conversationId: string, runExample: (ex
 
         <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 2, mb: 1 }}>
           <Typography level='body2' color='neutral'>
-            Select an AI purpose
+            Choose a Topic to start your interview
           </Typography>
           <Button variant='plain' color='neutral' size='sm' onClick={toggleEditMode}>
             {editMode ? 'Done' : 'Edit'}
@@ -181,6 +187,7 @@ export function PurposeSelector(props: { conversationId: string, runExample: (ex
             </Grid>
           ))}
         </Grid>
+        
 
         <Typography
           level='body2'
@@ -218,8 +225,14 @@ export function PurposeSelector(props: { conversationId: string, runExample: (ex
               mt: 1,
             }} />
         )}
+      <Box sx={{ m: 2 }} >
+      <Button fullWidth variant='solid' color='primary' disabled={!props.conversationId} onClick={startInterview}>
+            Start Interview 👩‍💻
+      </Button>
+      </Box>
 
       </Box>
+      
 
     </Stack>
 

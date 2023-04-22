@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { shallow } from 'zustand/shallow';
 
-import { Badge, IconButton, ListDivider, ListItemDecorator, Menu, MenuItem, Sheet, Stack, Switch, useColorScheme } from '@mui/joy';
+import { Badge, IconButton, ListDivider, ListItemDecorator, Menu, MenuItem, Sheet, Stack, Switch, useColorScheme, Typography } from '@mui/joy';
 import { SxProps } from '@mui/joy/styles/types';
 import ClearIcon from '@mui/icons-material/Clear';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -20,6 +20,8 @@ import { StyledDropdown } from '@/components/util/StyledDropdown';
 import { StyledDropdownWithSymbol } from '@/components/util/StyledDropdownWithSymbol';
 import { useChatStore } from '@/lib/store-chats';
 import { useSettingsStore } from '@/lib/store-settings';
+import { TitleRounded } from '@mui/icons-material';
+import WarningRoundedIcon from '@mui/icons-material/WarningRounded';
 
 
 /**
@@ -130,6 +132,10 @@ export function ApplicationBar(props: {
 
       <Stack direction='row' sx={{ my: 'auto' }}>
 
+      {/* <Typography component='h2'>
+          Online Interview
+      </Typography> */}
+
         {chatModelId && <StyledDropdown items={ChatModels} value={chatModelId} onChange={handleChatModelChange} />}
 
         {systemPurposeId && (zenMode === 'cleaner'
@@ -167,12 +173,12 @@ export function ApplicationBar(props: {
         <Switch checked={showSystemMessages} onChange={handleSystemMessagesToggle} sx={{ ml: 'auto' }} />
       </MenuItem>
 
-      <MenuItem>
+      {/* <MenuItem>
         <ListItemDecorator><SwapVertIcon /></ListItemDecorator>
         Free scroll
         <Switch checked={freeScroll} onChange={handleScrollModeToggle} sx={{ ml: 'auto' }} />
-      </MenuItem>
-
+      </MenuItem> */}
+x
       <MenuItem onClick={handleActionShowSettings}>
         <ListItemDecorator><SettingsOutlinedIcon /></ListItemDecorator>
         Settings

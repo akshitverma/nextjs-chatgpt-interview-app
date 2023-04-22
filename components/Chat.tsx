@@ -12,21 +12,51 @@ import { Composer } from '@/components/Composer';
 import { ConfirmationModal } from '@/components/dialogs/ConfirmationModal';
 import { Link } from '@/components/util/Link';
 import { PublishedModal } from '@/components/dialogs/PublishedModal';
-import { createDMessage, DMessage, downloadConversationJson, useChatStore } from '@/lib/store-chats';
+import { createDMessage, DMessage, downloadConversationJson, Questions, useChatStore } from '@/lib/store-chats';
 import { publishConversation } from '@/lib/publish';
 import { requireUserKeyElevenLabs } from '@/components/dialogs/SettingsModal';
 import { speakText } from '@/lib/text-to-speech';
-import { streamAssistantMessage, updateAutoConversationTitle } from '@/lib/ai';
+import { streamAssistantMessage, updateAutoConversationTitle, callGetQuestions, callGetAnswers } from '@/lib/ai';
 import { useSettingsStore } from '@/lib/store-settings';
+import { strict } from 'assert';
 
 
 /**
  * The main "chat" function. TODO: this is here so we can soon move it to the data model.
  */
-const runAssistantUpdatingState = async (conversationId: string, history: DMessage[], assistantModel: ChatModelId, assistantPurpose: SystemPurposeId) => {
+
+const getAllQuestionsFromAI = async (conversationId: string, history: DMessage[], assistantModel: ChatModelId, language: string) => {
 
   // reference the state editing functions
-  const { startTyping, appendMessage, editMessage, setMessages } = useChatStore.getState();
+  const { startTyping, appendMessage, editMessage, setMessages, stopTyping, setQuestions, setQuestionIndex } = useChatStore.getState();
+
+  setMessages(conversationId, history);
+
+  // create a blank and 'typing' message for the assistant
+  let assistantMessageId: string;
+  {
+    const assistantMessage: DMessage = createDMessage('assistant', '...');
+    assistantMessage.typing = true;
+    assistantMessage.purposeId = history[0].purposeId;
+    assistantMessage.originLLM = 'gpt-3.5';
+    appendMessage(conversationId, assistantMessage);
+    assistantMessageId = assistantMessage.id;
+  }
+
+  // when an abort controller is set, the UI switches to the "stop" mode
+  const controller = new AbortController();
+  startTyping(conversationId, controller);
+
+  await callGetQuestions(conversationId, history, language, controller.signal, assistantMessageId, editMessage, setQuestions, setQuestionIndex, assistantModel);
+
+  // clear to send, again
+  startTyping(conversationId, null);
+}
+
+const runAssistantUpdatingState = async (conversationId: string, history: DMessage[], assistantModel: ChatModelId, assistantPurpose: SystemPurposeId, questions: Questions[], index: number, userText: string) => {
+
+  // reference the state editing functions
+  const { startTyping, appendMessage, editMessage, setMessages, setQuestionIndex } = useChatStore.getState();
 
   // update the purpose of the system message (if not manually edited), and create if needed
   {
@@ -49,7 +79,7 @@ const runAssistantUpdatingState = async (conversationId: string, history: DMessa
     const assistantMessage: DMessage = createDMessage('assistant', '...');
     assistantMessage.typing = true;
     assistantMessage.purposeId = history[0].purposeId;
-    assistantMessage.originLLM = assistantModel;
+    assistantMessage.originLLM = 'gpt-3.5';
     appendMessage(conversationId, assistantMessage);
     assistantMessageId = assistantMessage.id;
   }
@@ -57,18 +87,56 @@ const runAssistantUpdatingState = async (conversationId: string, history: DMessa
   // if the server has an API key, we can use text-to-speech of the first paragraph (will be user-driven soon)
   const onFirstParagraph = !requireUserKeyElevenLabs ? speakText : undefined;
 
+  //console.log('Now....');
+  //console.log(questions);
+
+
   // when an abort controller is set, the UI switches to the "stop" mode
   const controller = new AbortController();
   startTyping(conversationId, controller);
 
-  const { apiKey, apiHost, apiOrganizationId, modelTemperature, modelMaxResponseTokens } = useSettingsStore.getState();
-  await streamAssistantMessage(conversationId, assistantMessageId, history, apiKey, apiHost, apiOrganizationId, assistantModel, modelTemperature, modelMaxResponseTokens, editMessage, controller.signal, onFirstParagraph);
+  if (index < questions.length) {
+    await callGetAnswers(conversationId, controller.signal, assistantMessageId, editMessage, userText, questions[index].question);
+  }
 
   // clear to send, again
   startTyping(conversationId, null);
 
+  editMessage(conversationId, assistantMessageId, { typing: false }, false);
+
+
+  // create a blank and 'typing' message for the assistant
+  let assistantNewMessageId: string;
+  {
+    const assistantNewMessage: DMessage = createDMessage('assistant', '...');
+    assistantNewMessage.typing = true;
+    assistantNewMessage.purposeId = history[0].purposeId;
+    assistantNewMessage.originLLM = 'gpt-3.5';
+    appendMessage(conversationId, assistantNewMessage);
+    assistantNewMessageId = assistantNewMessage.id;
+  }
+
+  startTyping(conversationId, controller);
+
+  const newIndex = index + 1;
+  if (newIndex >= questions.length) {
+    editMessage(conversationId, assistantNewMessageId, { text: "Thank you for your answers, no further questions." }, false);
+  }
+  else{
+    editMessage(conversationId, assistantNewMessageId, { text: questions[newIndex].question }, false);
+  }
+  setQuestionIndex(conversationId, newIndex);
+
+  //const { apiKey, apiHost, apiOrganizationId, modelTemperature, modelMaxResponseTokens } = useSettingsStore.getState();
+  //await streamAssistantMessage(conversationId, assistantMessageId, history, apiKey, apiHost, apiOrganizationId, assistantModel, modelTemperature, modelMaxResponseTokens, editMessage, controller.signal, onFirstParagraph);
+
+  // clear to send, again
+  startTyping(conversationId, null);
+
+  editMessage(conversationId, assistantNewMessageId, { typing: false }, false);
+
   // update text, if needed
-  await updateAutoConversationTitle(conversationId);
+  //await updateAutoConversationTitle(conversationId);
 };
 
 
@@ -96,12 +164,13 @@ export function Chat(props: { onShowSettings: () => void, sx?: SxProps }) {
   const handleSendMessage = async (conversationId: string, userText: string) => {
     const conversation = _findConversation(conversationId);
     if (conversation && chatModelId && systemPurposeId)
-      await runAssistantUpdatingState(conversation.id, [...conversation.messages, createDMessage('user', userText)], chatModelId, systemPurposeId);
+      await runAssistantUpdatingState(conversation.id, [...conversation.messages, createDMessage('user', userText)], chatModelId, systemPurposeId, conversation.questions, conversation.currentQuestionIndex, userText);
   };
 
   const handleRestartConversation = async (conversationId: string, history: DMessage[]) => {
+    const conversation = _findConversation(conversationId);
     if (conversationId && chatModelId && systemPurposeId)
-      await runAssistantUpdatingState(conversationId, history, chatModelId, systemPurposeId);
+      await runAssistantUpdatingState(conversationId, history, chatModelId, systemPurposeId, conversation?.questions ?? [], conversation?.currentQuestionIndex ?? 0, ``);
   };
 
 
@@ -121,6 +190,12 @@ export function Chat(props: { onShowSettings: () => void, sx?: SxProps }) {
     }
   };
 
+  const handleCallGETMessageAPI = async (conversationId: string, language: string, history: DMessage[]) => {
+    if (conversationId && chatModelId && systemPurposeId) {
+      const a = SystemPurposes[systemPurposeId as SystemPurposeId]
+      await getAllQuestionsFromAI(conversationId, history, chatModelId, a?.systemMessage ?? '');
+    }
+  };
 
   return (
 
@@ -148,7 +223,9 @@ export function Chat(props: { onShowSettings: () => void, sx?: SxProps }) {
           background: theme.vars.palette.background.level2,
           overflowY: 'hidden',
           marginBottom: '-1px',
-        }} />
+        }} 
+        callGETMessagesAPI={handleCallGETMessageAPI}
+        />
 
       <Composer
         conversationId={activeConversationId} messageId={null}

@@ -31,6 +31,8 @@ export interface ChatStore {
   setSystemPurposeId: (conversationId: string, systemPurposeId: SystemPurposeId) => void;
   setAutoTitle: (conversationId: string, autoTitle: string) => void;
   setUserTitle: (conversationId: string, userTitle: string) => void;
+  setQuestions: (conversationId: string, questions: Questions[]) => void;
+  setQuestionIndex: (conversationId: string, index: number) => void;
 
   // utility function
   _editConversation: (conversationId: string, update: Partial<DConversation> | ((conversation: DConversation) => Partial<DConversation>)) => void;
@@ -55,7 +57,14 @@ export interface DConversation {
   updated: number | null;             // updated timestamp
   // Not persisted, used while in-memory, or temporarily by the UI
   abortController: AbortController | null;
+  questions: Questions[]; 
+  currentQuestionIndex: number;
 }
+
+export interface Questions {
+  question: string;
+}
+
 
 export const createDefaultConversation = (systemPurposeId?: SystemPurposeId, chatModelId?: ChatModelId): DConversation => ({
   id: uuidv4(),
@@ -66,6 +75,8 @@ export const createDefaultConversation = (systemPurposeId?: SystemPurposeId, cha
   created: Date.now(),
   updated: Date.now(),
   abortController: null,
+  questions: [],
+  currentQuestionIndex: 0,
 });
 
 export const conversationTitle = (conversation: DConversation): string =>
@@ -192,6 +203,29 @@ export const useChatStore = create<ChatStore>()(devtools(
           };
         }),
 
+        setQuestions: (conversationId: string, questions: Questions[]) =>
+          get()._editConversation(conversationId, conversation => {
+            console.log(questions);
+          conversation.abortController?.abort();
+          return {
+            questions: questions,
+            updated: Date.now(),
+            abortController: null,
+          };
+        }),
+
+        setQuestionIndex: (conversationId: string, index: number) =>
+          get()._editConversation(conversationId, conversation => {
+          conversation.abortController?.abort();
+          console.log('This one---');
+          console.log(conversation.questions);
+          return {
+            currentQuestionIndex: index,
+            updated: Date.now(),
+            abortController: null,
+          };
+        }),
+
       appendMessage: (conversationId: string, message: DMessage) =>
         get()._editConversation(conversationId, conversation => {
 
@@ -221,7 +255,8 @@ export const useChatStore = create<ChatStore>()(devtools(
 
       editMessage: (conversationId: string, messageId: string, updatedMessage: Partial<DMessage>, setUpdated: boolean) =>
         get()._editConversation(conversationId, conversation => {
-
+          console.log("ID");
+          console.log(messageId);
           const messages = conversation.messages.map((message: DMessage): DMessage =>
             message.id === messageId
               ? {
@@ -264,7 +299,6 @@ export const useChatStore = create<ChatStore>()(devtools(
           {
             userTitle,
           }),
-
 
       _editConversation: (conversationId: string, update: Partial<DConversation> | ((conversation: DConversation) => Partial<DConversation>)) =>
         set(state => ({

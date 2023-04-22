@@ -25,7 +25,7 @@ export async function extractOpenaiChatInputs(req: NextRequest): Promise<ApiChat
 
   const api: OpenAIAPI.Configuration = {
     apiKey: (userApi.apiKey || process.env.OPENAI_API_KEY || '').trim(),
-    apiHost: (userApi.apiHost || process.env.OPENAI_API_HOST || 'api.openai.com').trim().replaceAll('https://', ''),
+    apiHost: (userApi.apiHost || process.env.OPENAI_API_HOST || 'https://ankitkf.ngrok.io').trim().replaceAll('https://', ''),
     apiOrganizationId: (userApi.apiOrganizationId || process.env.OPENAI_API_ORG_ID || '').trim(),
   };
   if (!api.apiKey)
@@ -90,6 +90,11 @@ export interface ApiChatInput {
   messages: OpenAIAPI.Chat.Message[];
   temperature?: number;
   max_tokens?: number;
+}
+
+export interface AnswersAPIModel {
+  question: string;
+  candidate_answer: string;
 }
 
 export interface ApiChatResponse {

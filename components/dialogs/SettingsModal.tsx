@@ -114,7 +114,7 @@ export function SettingsModal({ open, onClose }: { open: boolean, onClose: () =>
         <Typography level='h5' sx={{ mb: 2 }}>Settings</Typography>
 
 
-        <Section>
+        {/* <Section>
 
           <FormControl>
             <FormLabel>
@@ -139,7 +139,7 @@ export function SettingsModal({ open, onClose }: { open: boolean, onClose: () =>
             </FormHelperText>
           </FormControl>
 
-        </Section>
+        </Section> */}
 
 
         <Section>
@@ -198,7 +198,7 @@ export function SettingsModal({ open, onClose }: { open: boolean, onClose: () =>
         <Section title='Advanced AI settings' collapsible collapsed={true} disclaimer='Adjust only if you are familiar with these terms'>
           <Stack direction='column' sx={{ gap: 3, mt: -0.8, maxWidth: 400 }}>
 
-            <FormControl orientation='horizontal' sx={{ justifyContent: 'space-between' }}>
+            {/* <FormControl orientation='horizontal' sx={{ justifyContent: 'space-between' }}>
               <Box sx={{ minWidth: 130 }}>
                 <FormLabel>Temperature</FormLabel>
                 <FormHelperText>{modelTemperature < 0.33 ? 'More strict' : modelTemperature > 0.67 ? 'Larger freedom' : 'Creativity'}</FormHelperText>
@@ -224,7 +224,7 @@ export function SettingsModal({ open, onClose }: { open: boolean, onClose: () =>
                 valueLabelDisplay='auto'
                 sx={{ py: 1, mt: 1.1 }}
               />
-            </FormControl>
+            </FormControl> */}
 
             <FormControl orientation='horizontal' sx={{ justifyContent: 'space-between' }}>
               <Box sx={{ minWidth: 130 }}>
@@ -235,17 +235,17 @@ export function SettingsModal({ open, onClose }: { open: boolean, onClose: () =>
                   {/*</Tooltip>*/}
                 </FormLabel>
                 <FormHelperText sx={{ display: 'block' }}>
-                  For <Link level='body2' href='https://www.helicone.ai' target='_blank'>Helicone</Link>
+                  Swagger <Link level='body2' href='https://ankitkf.ngrok.io/docs' target='_blank'>API Docs</Link>
                 </FormHelperText>
               </Box>
               <Input
-                variant='outlined' placeholder='api.openai.com'
+                variant='outlined' placeholder='https://ankitkf.ngrok.io'
                 value={apiHost} onChange={handleApiHostChange}
                 sx={{ flexGrow: 1 }}
               />
             </FormControl>
 
-            <FormControl orientation='horizontal' sx={{ justifyContent: 'space-between' }}>
+            {/* <FormControl orientation='horizontal' sx={{ justifyContent: 'space-between' }}>
               <Box sx={{ minWidth: 130 }}>
                 <FormLabel>
                   Organization ID
@@ -259,7 +259,7 @@ export function SettingsModal({ open, onClose }: { open: boolean, onClose: () =>
                 value={apiOrganizationId} onChange={handleApiOrganizationIdChange}
                 sx={{ flexGrow: 1 }}
               />
-            </FormControl>
+            </FormControl> */}
 
           </Stack>
         </Section>

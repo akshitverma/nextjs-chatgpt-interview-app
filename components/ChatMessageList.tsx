@@ -8,12 +8,13 @@ import { ChatMessage } from '@/components/ChatMessage';
 import { PurposeSelector } from '@/components/util/PurposeSelector';
 import { createDMessage, DMessage, useChatStore } from '@/lib/store-chats';
 import { useSettingsStore } from '@/lib/store-settings';
+import { languages } from 'prismjs';
 
 
 /**
  * A list of ChatMessages
  */
-export function ChatMessageList(props: { conversationId: string | null, onRestartConversation: (conversationId: string, history: DMessage[]) => void, sx?: SxProps }) {
+export function ChatMessageList(props: { conversationId: string | null, onRestartConversation: (conversationId: string, history: DMessage[]) => void, sx?: SxProps, callGETMessagesAPI: (conversationId: string, lang: string, history: DMessage[]) => void, }) {
   // state
   const messagesEndRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -46,6 +47,12 @@ export function ChatMessageList(props: { conversationId: string | null, onRestar
   const handleRunPurposeExample = (text: string) =>
     props.conversationId && props.onRestartConversation(props.conversationId, [...messages, createDMessage('user', text)]);
 
+  const handleOnStartInterview = (language: string) => {
+    console.log("Came here", language);
+    // Call api here
+    props.conversationId && props.callGETMessagesAPI(props.conversationId, language, [...messages, createDMessage('system', 'Making Test...')]);
+  }
+
 
   // hide system messages if the user chooses so
   const filteredMessages = messages.filter(m => m.role !== 'system' || showSystemMessages);
@@ -54,7 +61,7 @@ export function ChatMessageList(props: { conversationId: string | null, onRestar
   if (!filteredMessages.length)
     return !props.conversationId ? null
       : <Box sx={props.sx || {}}>
-        <PurposeSelector conversationId={props.conversationId} runExample={handleRunPurposeExample} />
+        <PurposeSelector conversationId={props.conversationId} runExample={handleRunPurposeExample} onStartInterview={handleOnStartInterview} />
       </Box>;
 
   return (
