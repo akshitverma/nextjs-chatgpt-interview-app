@@ -20,14 +20,14 @@ export const countModelTokens: (text: string, chatModelId: ChatModelId, debugFro
   function tokenCount(text: string, chatModelId: ChatModelId, debugFrom: string): number {
     if (!(chatModelId in tokenEncoders)) {
       try {
-        tokenEncoders[chatModelId] = encoding_for_model(chatModelId);
+        tokenEncoders[chatModelId] = encoding_for_model('gpt-3.5-turbo');
       } catch (e) {
         tokenEncoders[chatModelId] = get_encoding('cl100k_base');
       }
     }
-    const count = tokenEncoders[chatModelId]?.encode(text)?.length || 0;
+    const count = tokenEncoders['gpt-3.5-turbo']?.encode(text)?.length || 0;
     if (DEBUG_TOKEN_COUNT)
-      console.log(`countModelTokens: ${debugFrom}, ${chatModelId}, "${text.slice(0, 10)}": ${count}`);
+      console.log(`countModelTokens: ${debugFrom}, ${'gpt-3.5-turbo'}, "${text.slice(0, 10)}": ${count}`);
     return count;
   }
 
