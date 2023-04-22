@@ -30,6 +30,7 @@ export const useSpeechRecognition = (onResultCallback: (transcript: string) => v
   const [isRecordingAudio, setIsRecordingAudio] = React.useState<boolean>(false);
   const [isRecordingSpeech, setIsRecordingSpeech] = React.useState<boolean>(false);
   const [isSpeechError, setIsSpeechError] = React.useState<boolean>(false);
+  const [isMicMute, setIsMicMute] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -82,7 +83,7 @@ export const useSpeechRecognition = (onResultCallback: (transcript: string) => v
       return console.error('Speech recognition is not supported or not initialized.');
 
     setIsSpeechError(false);
-    if (!isRecordingAudio)
+    if (!isRecordingAudio && !isRecordingSpeech)
       recognition.start();
     else
       recognition.stop();
