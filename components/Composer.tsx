@@ -208,7 +208,7 @@ export function Composer(props: {
     });
   }, []);
 
-  const { isSpeechEnabled, isSpeechError, isRecordingAudio, isRecordingSpeech, toggleRecording } = useSpeechRecognition(onSpeechResultCallback, 'm');
+  const { isSpeechEnabled, isSpeechError, isRecordingAudio, isRecordingSpeech, toggleRecording } = useSpeechRecognition(onSpeechResultCallback, 'k');
 
   const handleMicClicked = () => toggleRecording();
 
