@@ -355,7 +355,7 @@ export function ChatMessage(props: { message: DMessage, isLast: boolean, onMessa
           if (messageTyping)
             return <Avatar
               alt={messageSender} variant='plain'
-              src='https://i.giphy.com/media/jJxaUysjzO9ri/giphy.webp'
+              src='https://i.giphy.com/media/l4FUiYuju9ZhKlVr5j/giphy.webp'
               sx={{
                 width: 64,
                 height: 64,

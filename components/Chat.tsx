@@ -29,6 +29,7 @@ const getAllQuestionsFromAI = async (conversationId: string, history: DMessage[]
 
   // reference the state editing functions
   const { startTyping, appendMessage, editMessage, setMessages, stopTyping, setQuestions, setQuestionIndex } = useChatStore.getState();
+  const onFirstParagraph = !requireUserKeyElevenLabs ? speakText : undefined;
 
   setMessages(conversationId, history);
 
@@ -38,7 +39,7 @@ const getAllQuestionsFromAI = async (conversationId: string, history: DMessage[]
     const assistantMessage: DMessage = createDMessage('assistant', '...');
     assistantMessage.typing = true;
     assistantMessage.purposeId = history[0].purposeId;
-    assistantMessage.originLLM = 'gpt-3.5';
+    assistantMessage.originLLM = 'Interviewer';
     appendMessage(conversationId, assistantMessage);
     assistantMessageId = assistantMessage.id;
   }
@@ -47,7 +48,9 @@ const getAllQuestionsFromAI = async (conversationId: string, history: DMessage[]
   const controller = new AbortController();
   startTyping(conversationId, controller);
 
-  await callGetQuestions(conversationId, history, language, controller.signal, assistantMessageId, editMessage, setQuestions, setQuestionIndex, assistantModel);
+  await callGetQuestions(conversationId, history, language, controller.signal, assistantMessageId, editMessage, setQuestions, setQuestionIndex, assistantModel, onFirstParagraph);
+
+  
 
   // clear to send, again
   startTyping(conversationId, null);
@@ -79,7 +82,7 @@ const runAssistantUpdatingState = async (conversationId: string, history: DMessa
     const assistantMessage: DMessage = createDMessage('assistant', '...');
     assistantMessage.typing = true;
     assistantMessage.purposeId = history[0].purposeId;
-    assistantMessage.originLLM = 'gpt-3.5';
+    assistantMessage.originLLM = 'Interviewer';
     appendMessage(conversationId, assistantMessage);
     assistantMessageId = assistantMessage.id;
   }
