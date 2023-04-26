@@ -119,7 +119,7 @@ export function PurposeSelector(props: { conversationId: string, runExample: (ex
 
   return <>
 
-    {showPurposeFinder && <Box sx={{ p: 2 * tileSpacing }}>
+    {/* {showPurposeFinder && <Box sx={{ p: 2 * tileSpacing }}>
       <Input
         fullWidth
         variant='outlined' color='neutral'
@@ -136,7 +136,7 @@ export function PurposeSelector(props: { conversationId: string, runExample: (ex
           boxShadow: theme.vars.shadow.sm,
         }}
       />
-    </Box>}
+    </Box>} */}
 
     <Stack direction='column' sx={{ minHeight: '60vh', justifyContent: 'center', alignItems: 'center' }}>
 
@@ -144,14 +144,14 @@ export function PurposeSelector(props: { conversationId: string, runExample: (ex
 
         <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 2, mb: 1 }}>
           <Typography level='body2' color='neutral'>
-            Choose a Topic to start your interview
+            Start your interview, choose language from top.
           </Typography>
-          <Button variant='plain' color='neutral' size='sm' onClick={toggleEditMode}>
+          {/* <Button variant='plain' color='neutral' size='sm' onClick={toggleEditMode}>
             {editMode ? 'Done' : 'Edit'}
-          </Button>
+          </Button> */}
         </Box>
 
-        <Grid container spacing={tileSpacing} sx={{ justifyContent: 'flex-start' }}>
+        {/* <Grid container spacing={tileSpacing} sx={{ justifyContent: 'flex-start' }}>
           {purposeIDs.map((spId) => (
             <Grid key={spId}>
               <Button
@@ -187,7 +187,7 @@ export function PurposeSelector(props: { conversationId: string, runExample: (ex
             </Grid>
           ))}
         </Grid>
-        
+         */}
 
         <Typography
           level='body2'

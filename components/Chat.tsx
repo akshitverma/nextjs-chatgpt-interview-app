@@ -114,7 +114,7 @@ const runAssistantUpdatingState = async (conversationId: string, history: DMessa
     const assistantNewMessage: DMessage = createDMessage('assistant', '...');
     assistantNewMessage.typing = true;
     assistantNewMessage.purposeId = history[0].purposeId;
-    assistantNewMessage.originLLM = 'gpt-3.5';
+    assistantNewMessage.originLLM = 'Interviewer';
     appendMessage(conversationId, assistantNewMessage);
     assistantNewMessageId = assistantNewMessage.id;
   }
