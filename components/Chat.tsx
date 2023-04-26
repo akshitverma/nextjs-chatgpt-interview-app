@@ -36,7 +36,7 @@ const getAllQuestionsFromAI = async (conversationId: string, history: DMessage[]
   // create a blank and 'typing' message for the assistant
   let assistantMessageId: string;
   {
-    const assistantMessage: DMessage = createDMessage('assistant', '...');
+    const assistantMessage: DMessage = createDMessage('assistant', 'Assigining Interviewer');
     assistantMessage.typing = true;
     assistantMessage.purposeId = history[0].purposeId;
     assistantMessage.originLLM = 'Interviewer';
